@@ -1,12 +1,12 @@
 #############Importing Libraries#############
-#import os
+# import os
 from bs4 import BeautifulSoup
 import re
 # import requests
 # import scispacy
 # import spacy
 # nlp = spacy.load("en_core_sci_md")
-#import itertools
+# import itertools
 import glob
 import json
 import stanza
@@ -96,13 +96,14 @@ def selection_section_sents(node_name_text_tuples):
                  List of sentences from necessary sections.
                  :param node_name_text_tuples:
       """
-    # need_sections = ['methods and findings', 'abstract', 'participants', 'randomization and interventions',
-    # 'statistical analyses', 'secondary outcomes', 'materials and methods', 'setting and participants',
-    # 'randomization and interventions', 'outcomes and follow-up', 'primary outcomes', 'methods', 'study design',
-    # 'clinical failure', 'study setting, population and design', 'exclusion criteria', 'indeterminate',
-    # 'clinical outcome', 'statistics', 'clinical cure', 'objective']  # 'results']
+    need_sections = ['methods and findings', 'abstract', 'participants', 'randomization and interventions',
+                     'statistical analyses', 'secondary outcomes', 'materials and methods', 'setting and participants',
+                     'randomization and interventions', 'outcomes and follow-up', 'primary outcomes', 'methods',
+                     'study design',
+                     'clinical failure', 'study setting, population and design', 'exclusion criteria', 'indeterminate',
+                     'clinical outcome', 'statistics', 'clinical cure', 'objective']  # 'results']
 
-    need_sections = ['results']
+    # need_sections = ['results']
     section_sentences = []
     section_title = 'off'
     for item in node_name_text_tuples:
@@ -186,28 +187,25 @@ sent_dictionary = {
     "labelName": None,
     "isExtractable": "false",
     "isSelfContanined": "false",
-    "words": []
+    "sentWords": []
 }
 
-
 db = get_database('clinicalTrialCorpus_v1')
-# collection = db['methodSentencesMedicalArticles']
-collection = db['resultsSentencesMedicalArticles']
-
+collection = db['methodSentencesMedicalArticles']
+# collection = db['resultsSentencesMedicalArticles']
 
 word_label_tuple = []
 for i, sent in enumerate(segmented_sents):
     # print(sent.text)
     sent_dictionary['_id'] = ObjectId()
-    sent_dictionary['sentNumber'] = i+1
+    sent_dictionary['sentNumber'] = i + 1
     for w in sent.tokens:
         word_label_tuple.append(w.text)
         word_label_tuple.append('none')
-        sent_dictionary['words'].append(word_label_tuple)
+        sent_dictionary['sentWords'].append(word_label_tuple)
         word_label_tuple = []
     collection.insert_one(sent_dictionary)
-    sent_dictionary['words'] = []
-
+    sent_dictionary['sentWords'] = []
 
 # sent_dictionary.words = wrds
 # print(sent_dictionary['words'])
