@@ -20,14 +20,14 @@ from bson.objectid import ObjectId
 ######################################################
 
 
-def get_database(collection_name):
+def get_database(db_name):
     """ Establish connection to local Mongo DB.
 
         Args:
-            arg_1: collection name.
+            arg_1: db name.
 
         Return: Connection to database.
-        :param collection name: """
+        :param collection db_name: """
 
     # Provide the mongodb atlas url to connect python to mongodb using pymongo
     # CONNECTION_STRING = "mongodb+srv://user:pass@cluster.mongodb.net/myFirstDatabase"
@@ -36,7 +36,7 @@ def get_database(collection_name):
     client = MongoClient('localhost', 27017)
 
     # Create the database for our example (we will use the same database throughout the tutorial
-    return client[collection_name]
+    return client[db_name]
 
 
 def article2soup(html_article):
