@@ -12,7 +12,7 @@ import json
 import stanza
 from pymongo import MongoClient
 from bson.objectid import ObjectId
-
+import random
 
 # stanza.download('en', package='genia')
 #####################################################
@@ -159,7 +159,7 @@ def flatten(list_of_lists):
 articles_list = glob.glob('H:\\nlp_crap\\Articles\\*.html')
 
 list_of_articles = []
-for i in range(6):
+for i in range(len(articles_list)):
     article = article2soup(articles_list[i])
     article = full_text_extraction(article)
     sentence_list = selection_section_sents(article)
@@ -173,6 +173,7 @@ print(flatten_list_of_articles)
 #     outfile.write(json_object)
 
 nlp = stanza.Pipeline('en', processors='tokenize', package='genia')
+
 segmented_sents = []
 for sents in flatten_list_of_articles:
     nlp_article = nlp(sents)
@@ -191,14 +192,48 @@ sent_dictionary = {
 }
 
 db = get_database('clinicalTrialCorpus_v1')
-collection = db['methodSentencesMedicalArticles']
+collection = db['method200SentencesMedicalArticles']
 # collection = db['resultsSentencesMedicalArticles']
+
+################################################################################
+################################Creation Dataset from files#####################
+################################################################################
+
+with open('Articles/RCT_corpus.tsv', encoding='utf-8') as f:
+    lines = f.readlines()
+
+sentences = []
+for l in lines:
+    l = l.strip().split('\t')[0]
+    sentences.append(l)
+
+
+n = 2000
+sentences_2000 = random.sample(sentences, n)
+print(len(sentences_2000))
+
+################################################################################
+################################Putting Dataset into MongoDB####################
+################################################################################
+
+
+
+
+print(dir(nlp(sentences_2000[3])))
+print(nlp(sentences_2000[3]))
+test_sentence = nlp(sentences_2000[3])
+print(test_sentence)
+for w in test_sentence.iter_words():
+    print(w.text)
+
+
 
 word_label_tuple = []
 for i, sent in enumerate(segmented_sents):
-    # print(sent.text)
+    # tokenized_sentence = nlp(sent)
     sent_dictionary['_id'] = ObjectId()
     sent_dictionary['sentNumber'] = i + 1
+    # for w in tokenized_sentence.iter_words():
     for w in sent.tokens:
         word_label_tuple.append(w.text)
         word_label_tuple.append('none')
