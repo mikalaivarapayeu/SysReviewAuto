@@ -1,43 +1,43 @@
-import json
-import os
-import project.raw_text_extraction.html_extraction.common_function as commons
+from pymongo import MongoClient
 from bson.objectid import ObjectId
-import random
 
-with open('Articles/RCT_corpus.tsv', encoding='utf-8') as f:
-    lines = f.readlines()
+client = MongoClient('localhost', 27017)
+db = client['clinicalTrialCorpus_v1']
 
-sentences = []
-for l in lines:
-    l = l.strip().split('\t')[0]
-    sentences.append(l)
+# coll_names = [coll_name for coll_name in db.list_collection_names()]
+collection = db['method200SentencesMedicalArticles']
 
-print(len(sentences))
+sentences = collection.find()
 
-sent_dictionary = {
-    "sentNumber": 1,
-    "labelName": None,
-    "isExtractable": "false",
-    "isSelfContanined": "false",
-    "sentWords": []
-}
+chunked_sentence_list = []
+for i in range(10):
+    chunked_sentence = {'sent_number': sentences[i]['sentNumber']}
+    chunked_sentence_list.append(chunked_sentence)
 
-n = 2000
-sentences_2000 = random.sample(sentences, n)
-print(len(sentences_2000))
 
-db = commons.get_database('clinicalTrialCorpus_v1')
-collection = db['2000methodSentencesMedicalArticles']
 
-word_label_tuple = []
-for i, sent in enumerate(sentences_2000):
-    # print(sent.text)
-    sent_dictionary['_id'] = ObjectId()
-    sent_dictionary['sentNumber'] = i + 1
-    for w in sent.tokens:
-        word_label_tuple.append(w.text)
-        word_label_tuple.append('none')
-        sent_dictionary['sentWords'].append(word_label_tuple)
-        word_label_tuple = []
-    collection.insert_one(sent_dictionary)
-    sent_dictionary['sentWords'] = []
+chunked_phrase_list = []
+for s in sentences:
+    chunked_phrase = []
+    for wlpain in s['sentWords']:
+        chunked_phrase.append(wlpain[0])
+        if wlpain[1] != 'none':
+            chunked_phrase_text = ' '.join(chunked_phrase)
+            chunked_phrase_label = (s['sentNumber'], wlpain[1].lower(), chunked_phrase_text)
+            chunked_phrase_list.append(chunked_phrase_label)
+            chunked_phrase = []
+
+print(len(chunked_phrase_list))
+
+
+def sort_chunks(chunk_phrase):
+    return chunk_phrase[1]
+
+
+sorted_chunk_list = sorted(chunked_phrase_list, key=sort_chunks)
+
+with open('H:/nlp_crap/Articles/sortedChunksTest.txt', 'w', encoding='utf-8') as f:
+    for chunk in sorted_chunk_list:
+        f.write(str(chunk[0])+'\t'+chunk[1]+'\t'+chunk[2]+'\n')
+
+

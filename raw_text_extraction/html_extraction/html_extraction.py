@@ -14,6 +14,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 import random
 
+
 # stanza.download('en', package='genia')
 #####################################################
 #####Getting Text from Articles#######################
@@ -192,7 +193,7 @@ sent_dictionary = {
 }
 
 db = get_database('clinicalTrialCorpus_v1')
-collection = db['method200SentencesMedicalArticles']
+collection = db['method1500SentencesMedicalArticles']
 # collection = db['resultsSentencesMedicalArticles']
 
 ################################################################################
@@ -207,16 +208,13 @@ for l in lines:
     l = l.strip().split('\t')[0]
     sentences.append(l)
 
-
-n = 2000
-sentences_2000 = random.sample(sentences, n)
-print(len(sentences_2000))
+n = 1500
+sentences_1500 = random.sample(sentences, n)
+print(len(sentences_1500))
 
 ################################################################################
 ################################Putting Dataset into MongoDB####################
 ################################################################################
-
-
 
 
 print(dir(nlp(sentences_2000[3])))
@@ -226,15 +224,14 @@ print(test_sentence)
 for w in test_sentence.iter_words():
     print(w.text)
 
-
-
 word_label_tuple = []
-for i, sent in enumerate(segmented_sents):
-    # tokenized_sentence = nlp(sent)
+# for i, sent in enumerate(segmented_sents):
+for i, sent in enumerate(sentences_1500):
+    tokenized_sentence = nlp(sent)
     sent_dictionary['_id'] = ObjectId()
     sent_dictionary['sentNumber'] = i + 1
-    # for w in tokenized_sentence.iter_words():
-    for w in sent.tokens:
+    for w in tokenized_sentence.iter_words():
+    # for w in sent.tokens:
         word_label_tuple.append(w.text)
         word_label_tuple.append('none')
         sent_dictionary['sentWords'].append(word_label_tuple)
