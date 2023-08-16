@@ -7,7 +7,7 @@ import re
 # import spacy
 # nlp = spacy.load("en_core_sci_md")
 # import itertools
-import glob
+# import glob
 import json
 import stanza
 from pymongo import MongoClient
@@ -156,7 +156,31 @@ def flatten(list_of_lists):
 # article = full_text_extraction(article)
 # sentence_list = selection_section_sents(article)
 # print(sentence_list)
+########################################################################################
+##########################Mongo and Stanza set ups##################################
+########################################################################################
+db = get_database('clinicalTrialCorpus_v1')
+# coll_names = [coll_name for coll_name in db.list_collection_names()]
+# print(coll_names)
+nlp = stanza.Pipeline('en', processors='tokenize', package='mimic')
+collection = db['method200SentencesMedicalArticles']
 
+sent_dictionary = {
+    "sentNumber": 1,
+    "labelName": None,
+    "isExtractable": "false",
+    "isSelfContanined": "false",
+    "sentWords": []
+}
+
+# collection.drop()
+
+
+
+
+########################################################################################
+########################################################################################
+########################################################################################
 articles_list = glob.glob('H:\\nlp_crap\\Articles\\*.html')
 
 list_of_articles = []
@@ -173,7 +197,6 @@ print(flatten_list_of_articles)
 # with open("H:\\nlp_crap\\Articles\\articles.json", "w") as outfile:
 #     outfile.write(json_object)
 
-nlp = stanza.Pipeline('en', processors='tokenize', package='genia')
 
 segmented_sents = []
 for sents in flatten_list_of_articles:
@@ -184,16 +207,9 @@ for sents in flatten_list_of_articles:
 # sent = segmented_sents[0]
 print(len(segmented_sents))
 
-sent_dictionary = {
-    "sentNumber": 1,
-    "labelName": None,
-    "isExtractable": "false",
-    "isSelfContanined": "false",
-    "sentWords": []
-}
 
-db = get_database('clinicalTrialCorpus_v1')
-collection = db['method1500SentencesMedicalArticles']
+# db = get_database('clinicalTrialCorpus_v1')
+# collection = db['method1500SentencesMedicalArticles']
 # collection = db['resultsSentencesMedicalArticles']
 
 ################################################################################
@@ -208,25 +224,48 @@ for l in lines:
     l = l.strip().split('\t')[0]
     sentences.append(l)
 
-n = 1500
-sentences_1500 = random.sample(sentences, n)
-print(len(sentences_1500))
+print(len(sentences))
+
+
+n = 100
+bs = 6
+sample_range = list(range(len(sentences)-bs))
+selected_indexes = random.sample(sample_range, n)
+print(selected_indexes)
+
+sentences_100_5 = []
+for idx in selected_indexes:
+    # sentence_b = sentences[idx-3] + ' ' + sentences[idx - 2] + ' ' + sentences[idx - 1] + ' ' + sentences[idx]
+    sentence = sentences[idx]+' '+sentences[idx+1]+' '+sentences[idx+2]+' '+sentences[idx+3]+' '+sentences[idx+4]+' '+sentences[idx+5]
+    # sentences_100_5.append(sentence_b)
+    sentences_100_5.append(sentence)
+
+print(sentences_100_5)
+
+with open('H:/nlp_crap/Articles/sentences_300_5.txt','w', encoding='utf-8') as f:
+    for l in sentences_100_5:
+        f.write(l)
+        f.write('\n')
+        f.write('\n')
+
+# sentences_1500 = random.sample(sentences, n)
+# print(len(sentences_1500))
 
 ################################################################################
 ################################Putting Dataset into MongoDB####################
 ################################################################################
 
 
-print(dir(nlp(sentences_2000[3])))
-print(nlp(sentences_2000[3]))
-test_sentence = nlp(sentences_2000[3])
-print(test_sentence)
-for w in test_sentence.iter_words():
-    print(w.text)
+# print(dir(nlp(sentences_2000[3])))
+# print(nlp(sentences_2000[3]))
+# test_sentence = nlp(sentences_2000[3])
+# print(test_sentence)
+# for w in test_sentence.iter_words():
+#     print(w.text)
 
 word_label_tuple = []
 # for i, sent in enumerate(segmented_sents):
-for i, sent in enumerate(sentences_1500):
+for i, sent in enumerate(sentences_100_5):
     tokenized_sentence = nlp(sent)
     sent_dictionary['_id'] = ObjectId()
     sent_dictionary['sentNumber'] = i + 1

@@ -23,38 +23,64 @@ def get_database(db_name):
     return client[db_name]
 
 db = get_database('clinicalTrialCorpus_v1')
-collection = db['methodSentencesMedicalArticles']
+print([coll_name for coll_name in db.list_collection_names()])
 
 
+collection = db['method200SentencesMedicalArticles']
+
+
+####################################################
 #############Pulling Data From MongoDb#############
-
-
+####################################################
 sentneces_objects = list(collection.find())
 print(len(sentneces_objects))
 
 
+sentence_set = []
+sentence = []
+
+for sent in sentneces_objects:
+    for wlp in sent['sentWords']:
+        sentence.append(wlp)
+    sentence_set.append(sentence)
+    sentence = []
+
+print(len(sentence_set))
+
+print(list(set([wlp[1] for s in sentence_set for wlp in s])))
+
+l2i = {i:k  for i, k in enumerate(list(set([wlp[1] for s in sentence_set for wlp in s])))}
+i2l = {k:i for i,k in l2i.items()}
+print(i2l)
+
+s = sentence_set[19]
+current_label = 'none'
+extracted_chunk_list = []
+extracted_chunk_set = []
+for wlp in s:
+    if wlp[1] not in ['none','ENDPHRASE','BORDER'] :
+        current_label = wlp[1]
+
+    elif wlp[1] == 'ENDPHRASE':
+        extracted_chunk.append(wlp[0])
+
+        extracted_chunk_set.append({current_label:extracted_chunk})
+        extracted_chunk = ''
+        current_label = 'none'
+    elif current_label != 'none' and wlp[1] != 'ENDPHRASE':
+        extracted_chunk = extracted_chunk +" "+wlp[0]
+print(extracted_chunk_set)
+print(' '.join([wlp[0] for wlp in s]))
+####################################################
+#############Pushing data into files################
+####################################################
+
+
 dataset = {}
-sentences = []
-words = []
-labels = []
+dataset ['sentences'] = sentence_set
+# dataset['labels'] = labels
 
-
-for i, sent in enumerate(sentneces_objects):
-    label = sent.get('semanticLabel')
-    if label:
-        labels.append(label)
-    else:
-        labels.append('missed')
-
-    for w in sent['sentWords']:
-        words.append(w[0])
-    sentences.append(words)
-    words = []
-
-dataset ['sentences'] = sentences
-dataset['labels'] = labels
-
-with open('H:/nlp_crap/Articles/datasetTest.json', 'w') as f:
+with open('H:/nlp_crap/Articles/dataset400_3_sents.json', 'w') as f:
     json.dump(dataset, f)
 
 
